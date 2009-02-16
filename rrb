@@ -1,5 +1,28 @@
 #!/bin/sh
 
+# This is the reverse rsync backup (rrb) utility. It has to be run on the
+# server and will then make a backup of a specified directory of a client
+# machine via ssh, rsh, or any other remote shell or the localhost using rsync
+# with hardlinks. See the config.example for more information about the
+# configuration of rrb for a client.
+
+# Further features include an exclusion file, the resume of a failed transfer,
+# customizable commands to be executed before running, after running, after a
+# failure, after a success.
+#
+# You can use fdupes or a similar tool to hardlink between multiple machines.
+
+# No backups will be done automatically. You have to run rrb by hand every time
+# you want to make a backup. Use cron to make regular backups, at to make
+# backups at a specific time, or a custom script using sxc, or portknocking, or
+# whatever to enable the client to request a backup.
+
+# The backups can be made accessible in any manner, like NFS, SMB, or a custom
+# script that tars the files and sends them over the network. Please use your
+# creativity.
+
+# -----------------------------------------------------------------------------
+
 # Exit on every fail
 set -e
 
