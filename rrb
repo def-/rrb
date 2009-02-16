@@ -17,6 +17,8 @@ EXCLUDE_FILE=
 DEST_DIR=
 BEFORE_CMD=
 AFTER_CMD=
+FAIL_CMD=
+SUCCESS_CMD=
 RSYNC_OPTS=
 
 log()
@@ -47,6 +49,14 @@ if [ -e "$NEW_DIR" ]; then
   exit $EX_FILE
 fi
 
+if [ "" != "$EXCLUDE_FILE" ]; then
+  RSYNC_OPTS="$RSYNC_OPTS --exclude-from=$EXCLUDE_FILE"
+fi
+
+if [ -L "$DEST_DIR/latest" ]; then
+  RSYNC_OPTS="$RSYNC_OPTS --link-dest=$LATEST_DIR"
+fi
+
 if [ "" != "$BEFORE_CMD" ]; then
   echo "$BEFORE_CMD" | sh
 fi
@@ -56,20 +66,20 @@ cleanup()
   if [ "" != "$AFTER_CMD" ]; then
     echo "$AFTER_CMD" | sh
   fi
+
+  if [ 0 -ne $? ]; then
+    if [ "" != "$FAIL_CMD" ]; then
+      echo "$FAIL_CMD" | sh
+    fi
+  elif [ "" != "$SUCCESS_CMD" ]; then
+    echo "$SUCCESS_CMD" | sh
+  fi
 }
 
 trap cleanup EXIT
 
-if [ "" != "$EXCLUDE_FILE" ]; then
-  RSYNC_OPTS="$RSYNC_OPTS --exclude-from=$EXCLUDE_FILE"
-fi
-
-if [ -L "$DEST_DIR/latest" ]; then
-  RSYNC_OPTS="$RSYNC_OPTS --link-dest=$LATEST_DIR"
-fi
-
-rsync -avzP --delete --delete-excluded $RSYNC_OPTS $SRC "$TMP_DIR" \
-|| [ $? -eq 24 ]
+rsync -avzPH --delete --delete-excluded $RSYNC_OPTS $SRC "$TMP_DIR" \
+|| [ 24 -eq $? ]
 
 mv $TMP_DIR $NEW_DIR
 rm -f $LATEST_DIR
