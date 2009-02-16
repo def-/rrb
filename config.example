@@ -1,0 +1,59 @@
+# Example configuration file for backing up a client using rrb.
+# Will be interpreted as a shell script. Comments start with #.
+# Use KEY=VALUE to assign a value to the key. No spaces around the =.
+#
+# -----------------------------------------------------------------------------
+# Obligatory options
+# -----------------------------------------------------------------------------
+
+# The root of the files to be backuped. Can be on a remote host or localhost.
+# Will be interpreted by rsync.
+
+# To backup a local directory (and create an additional directory level at the
+# destination):
+#SRC=/etc
+
+# In order not to create an additional directory level at the destination add a
+# trailing slash:
+#SRC=/etc/
+
+# Remote access via remote shell. Note that you don't need to add a trailing
+# slash:
+#SRC=example:'file\ name\ with\ spaces'
+
+# Remote access via rsync daemon. No need to add a trailing slash on remote
+# connections:
+#SRC=example::module
+
+# The destination directory to put the backups in:
+#DEST_DIR=/backup/example
+
+# -----------------------------------------------------------------------------
+# Optional options
+# -----------------------------------------------------------------------------
+
+# The path of a file that specifies the excludes. New line for every file to be
+# excluded. (Directories are files, too.) See man 1 rsync for more detail on
+# the layout of the file.
+#EXCLUDE_FILE=bar
+
+# A command that will be executed before running the backup. Can be used to
+# mount a filesystem.
+#BEFORE_CMD="echo 'before'"
+
+# A command that will be executed after running the backup. Also if the backup
+# failed. Can be used to mount a filesystem that has been mounted before. Note
+# that you can't use variables to find out whether the filesystem was mounted
+# before BEFORE_CMD.
+#AFTER_CMD="echo 'after'"
+
+# Will only be executed if the backup failed. Might be handy to notify the
+# admin.
+#FAIL_CMD="echo 'fail'"
+
+# Will only be executed if the backup succeeded.
+#SUCCESS_CMD="echo 'success'"
+
+# Specify a remote shell for rsync. There are more rsync-related options, see
+# man 1 rsync.
+#RSYNC_RSH=ssh
