@@ -1,1 +1,76 @@
 #!/bin/sh
+
+# Exit on every fail
+set -e
+
+HELP="Usage: $0 config"
+
+# Exit codes
+EX_USAGE=64
+EX_SOFTWARE=70
+EX_CONFIG=78
+EX_FILE=100
+
+# Unset variables
+SRC=
+EXCLUDE_FILE=
+DEST_DIR=
+BEFORE_CMD=
+AFTER_CMD=
+RSYNC_OPTS=
+
+log()
+{
+  echo "$*" >&2
+}
+
+if [ "" == "$1" ]; then
+  log "Config file missing."
+  log "$HELP"
+  exit $EX_USAGE
+fi
+
+. $1
+
+if [ "" == "$SRC" -o "" == "$DEST_DIR" ]; then
+  log 'Invalid config file, has to include at least $SRC and $DEST_DIR.'
+  log "$HELP"
+  exit $EX_CONFIG
+fi
+
+LATEST_DIR="$DEST_DIR/latest"
+TMP_DIR="$DEST_DIR/.tmp"
+NEW_DIR="$DEST_DIR/`date +%FT%T`"
+
+if [ -e "$NEW_DIR" ]; then
+  log "Backup directory \"$NEW_DIR\" already exists."
+  exit $EX_FILE
+fi
+
+if [ "" != "$BEFORE_CMD" ]; then
+  echo "$BEFORE_CMD" | sh
+fi
+
+cleanup()
+{
+  if [ "" != "$AFTER_CMD" ]; then
+    echo "$AFTER_CMD" | sh
+  fi
+}
+
+trap cleanup EXIT
+
+if [ "" != "$EXCLUDE_FILE" ]; then
+  RSYNC_OPTS="$RSYNC_OPTS --exclude-from=$EXCLUDE_FILE"
+fi
+
+if [ -L "$DEST_DIR/latest" ]; then
+  RSYNC_OPTS="$RSYNC_OPTS --link-dest=$LATEST_DIR"
+fi
+
+rsync -avzP --delete --delete-excluded $RSYNC_OPTS $SRC "$TMP_DIR" \
+|| [ $? -eq 24 ]
+
+mv $TMP_DIR $NEW_DIR
+rm -f $LATEST_DIR
+ln -sf $NEW_DIR $LATEST_DIR
