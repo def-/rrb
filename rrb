@@ -49,6 +49,11 @@ log()
   echo "$*" >&2
 }
 
+run()
+{
+  echo "$*" | sh
+}
+
 if [ "" == "$1" ]; then
   log "Config file missing."
   log "$HELP"
@@ -81,7 +86,7 @@ if [ -L "$DEST_DIR/latest" ]; then
 fi
 
 if [ "" != "$BEFORE_CMD" ]; then
-  echo "$BEFORE_CMD" | sh
+  run "$BEFORE_CMD"
 fi
 
 cleanup()
@@ -89,15 +94,15 @@ cleanup()
   RESULT=$?
 
   if [ "" != "$AFTER_CMD" ]; then
-    echo "$AFTER_CMD" | sh
+    run "$AFTER_CMD"
   fi
 
   if [ 0 -ne $RESULT ]; then
     if [ "" != "$FAIL_CMD" ]; then
-      echo "$FAIL_CMD" | sh
+      run "$FAIL_CMD"
     fi
   elif [ "" != "$SUCCESS_CMD" ]; then
-    echo "$SUCCESS_CMD" | sh
+    run "$SUCCESS_CMD"
   fi
 }
 
