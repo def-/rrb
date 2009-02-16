@@ -35,7 +35,7 @@
 # The path of a file that specifies the excludes. New line for every file to be
 # excluded. (Directories are files, too.) See man 1 rsync for more detail on
 # the layout of the file.
-#EXCLUDE_FILE=bar
+#EXCLUDE_FILE=/etc/rrb/exclude.example
 
 # A command that will be executed before running the backup. Can be used to
 # mount a filesystem.
