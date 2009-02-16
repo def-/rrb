@@ -23,7 +23,7 @@
 
 # -----------------------------------------------------------------------------
 
-# Exit on every fail
+# Exit on every fail.
 set -e
 
 HELP="Usage: $0 config"
@@ -101,6 +101,7 @@ cleanup()
   fi
 }
 
+# Always call, event on success.
 trap cleanup EXIT
 
 rsync -avzPH --delete --delete-excluded $RSYNC_OPTS $SRC "$TMP_DIR" \
