@@ -1,9 +1,9 @@
 #!/bin/sh
 
 # This is the reverse rsync backup (rrb) utility. It has to be run on the
-# server and will then make a backup of a specified directory of a client
-# machine via ssh, rsh, or any other remote shell or the localhost using rsync
-# with hardlinks. See the config.example for more information about the
+# backup server and will then make a backup of a specified directory of a
+# client machine via ssh, rsh, or any other remote shell or the localhost using
+# rsync with hardlinks. See the config.example for more information about the
 # configuration of rrb for a client.
 
 # Further features include an exclusion file, the resume of a failed transfer,
@@ -34,7 +34,7 @@ EX_SOFTWARE=70
 EX_CONFIG=78
 EX_FILE=100
 
-# Unset variables
+# Unset variables from config file.
 SRC=
 EXCLUDE_FILE=
 DEST_DIR=
@@ -51,7 +51,9 @@ log()
 
 run()
 {
-  echo "$*" | sh
+  if [ "" != "$*" ]; then
+    echo "$*" | sh
+  fi
 }
 
 if [ "" == "$1" ]; then
@@ -85,31 +87,23 @@ if [ -L "$DEST_DIR/latest" ]; then
   RSYNC_OPTS="$RSYNC_OPTS --link-dest=$LATEST_DIR"
 fi
 
-if [ "" != "$BEFORE_CMD" ]; then
-  run "$BEFORE_CMD"
-fi
+run "$BEFORE_CMD"
 
 cleanup()
 {
-  RESULT=$?
-
-  if [ "" != "$AFTER_CMD" ]; then
-    run "$AFTER_CMD"
-  fi
-
-  if [ 0 -ne $RESULT ]; then
-    if [ "" != "$FAIL_CMD" ]; then
-      run "$FAIL_CMD"
-    fi
-  elif [ "" != "$SUCCESS_CMD" ]; then
+  if [ 0 -eq $? ]; then
     run "$SUCCESS_CMD"
+  else
+    run "$FAIL_CMD"
   fi
+
+  run "$AFTER_CMD"
 }
 
 # Always call, event on success.
 trap cleanup EXIT
 
-rsync -avzPH --delete --delete-excluded $RSYNC_OPTS $SRC "$TMP_DIR" \
+rsync -avzP --delete --delete-excluded $RSYNC_OPTS $SRC "$TMP_DIR" \
 || [ 24 -eq $? ]
 
 mv $TMP_DIR $NEW_DIR
