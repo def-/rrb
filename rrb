@@ -42,7 +42,7 @@ EX_FILE=100
 
 # Unset variables from config file.
 SRC=
-EXCLUDE_FILE=
+EXCLUDES_FILE=
 DEST_DIR=
 BEFORE_CMD=
 AFTER_CMD=
@@ -85,8 +85,8 @@ if [ -e "$NEW_DIR" ]; then
   exit $EX_FILE
 fi
 
-if [ "" != "$EXCLUDE_FILE" ]; then
-  RSYNC_OPTS="$RSYNC_OPTS --exclude-from=$EXCLUDE_FILE"
+if [ "" != "$EXCLUDES_FILE" ]; then
+  RSYNC_OPTS="$RSYNC_OPTS --exclude-from=$EXCLUDES_FILE"
 fi
 
 if [ -L "$DEST_DIR/latest" ]; then
