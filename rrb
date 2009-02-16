@@ -5,18 +5,24 @@
 # client machine via ssh, rsh, or any other remote shell or the localhost using
 # rsync with hardlinks. See the config.example for more information about the
 # configuration of rrb for a client.
-
+#
 # Further features include an exclusion file, the resume of a failed transfer,
 # customizable commands to be executed before running, after running, after a
 # failure, after a success.
 #
 # You can use fdupes or a similar tool to hardlink between multiple machines.
-
+#
 # No backups will be done automatically. You have to run rrb by hand every time
 # you want to make a backup. Use cron to make regular backups, at to make
 # backups at a specific time, or a custom script using sxc, or portknocking, or
 # whatever to enable the client to request a backup.
-
+#
+# If you want to automize backups via ssh, you can use public key
+# authentication. So if you do full-system backups from your backup server, it
+# will have root access to all the backup clients. Root access on the server
+# means root access on all the clients and a loss of all the backups. Secure
+# the server and save backups offline, too.
+#
 # The backups can be made accessible in any manner, like NFS, SMB, or a custom
 # script that tars the files and sends them over the network. Please use your
 # creativity.
