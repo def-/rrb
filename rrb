@@ -63,11 +63,13 @@ fi
 
 cleanup()
 {
+  RESULT=$?
+
   if [ "" != "$AFTER_CMD" ]; then
     echo "$AFTER_CMD" | sh
   fi
 
-  if [ 0 -ne $? ]; then
+  if [ 0 -ne $RESULT ]; then
     if [ "" != "$FAIL_CMD" ]; then
       echo "$FAIL_CMD" | sh
     fi
