@@ -18,7 +18,8 @@
 #SRC=/etc/
 
 # Remote access via remote shell. Note that you don't need to add a trailing
-# slash:
+# slash. Spaces in remote sources have to be escaped, so the remote shell can
+# interpret them. My tip: Don't use spaces at all:
 #SRC=example:'file\ name\ with\ spaces'
 
 # Remote access via rsync daemon. No need to add a trailing slash on remote
@@ -36,6 +37,9 @@
 # excluded. (Directories are files, too.) See man 1 rsync for more detail on
 # the layout of the file.
 #EXCLUDES_FILE=/etc/rrb/excludes.example
+
+# Same with spaces:
+#EXCLUDES_FILE="/path with spaces/excludes.example"
 
 # A command that will be executed before running the backup. Can be used to
 # mount a filesystem.

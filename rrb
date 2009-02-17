@@ -26,12 +26,13 @@
 # The backups can be made accessible in any manner, like NFS, SMB, or a custom
 # script that tars the files and sends them over the network. Please use your
 # creativity.
+#
+# This script should be compatible to zsh and bash. Tell me if it fails in your
+# favourite shell.
 
 # -----------------------------------------------------------------------------
 
-# Exit on every fail.
-set -e
-
+set -e # Exit on every fail.
 HELP="Usage: $0 config"
 
 # Exit codes
@@ -42,89 +43,63 @@ EX_FILE=100
 EX_RUNNING=101
 
 # Unset variables from config file.
-SRC=
-EXCLUDES_FILE=
-DEST_DIR=
-BEFORE_CMD=
-AFTER_CMD=
-FAIL_CMD=
-SUCCESS_CMD=
-RSYNC_OPTS=
+unset SRC EXCLUDES_FILE DEST_DIR BEFORE_CMD AFTER_CMD FAIL_CMD SUCCESS_CMD \
+      RSYNC_OPTS
 
-log()
+fail()
 {
-  echo "$*" >&2
+  echo -e "$1" >&2
+  exit $2
 }
 
 run()
 {
-  if [ "" != "$*" ]; then
-    echo "$*" | sh
+  [ "$*" ] && echo "$*" | sh
+}
+
+add_rsync_opt()
+{
+  if [ "${RSYNC_OPTS}" ]; then
+    RSYNC_OPTS=("${RSYNC_OPTS[@]}" "$*")
+  else
+    RSYNC_OPTS=("$*")
   fi
 }
 
-if [ "" == "$1" ]; then
-  log "Config file missing."
-  log "$HELP"
-  exit $EX_USAGE
-fi
+cleanup()
+{
+  [ 0 -ne $? ] && run "$FAIL_CMD"
+  run "$AFTER_CMD"
+  rm -f "$LOCK_FILE"
+}
 
-. $1
-
-if [ "" == "$SRC" -o "" == "$DEST_DIR" ]; then
-  log 'Invalid config file, has to include at least $SRC and $DEST_DIR.'
-  log "$HELP"
-  exit $EX_CONFIG
-fi
+[ "$1" ] || fail "Config file missing.\n$HELP" $EX_USAGE
+source $1
+[ "$SRC" -a "$DEST_DIR" ] || fail "Invalid config file, has to include at \
+least \$SRC and \$DEST_DIR.\n$HELP" $EX_CONFIG
 
 LATEST_DIR="$DEST_DIR/latest"
 TMP_DIR="$DEST_DIR/.tmp"
 NEW_DIR="$DEST_DIR/`date +%FT%T`"
 LOCK_FILE="$DEST_DIR/.lock"
-LOCK_FILE_TMP=`mktemp "$DEST_DIR/.lock.XXXXXXXXXX"`
 
-if [ -e "$NEW_DIR" ]; then
-  log "Backup directory $NEW_DIR already exists."
-  exit $EX_FILE
-fi
+[ -e "$NEW_DIR" ] && fail "Backup directory $NEW_DIR already exists." $EX_FILE
 
-if [ "" != "$EXCLUDES_FILE" ]; then
-  RSYNC_OPTS="$RSYNC_OPTS --exclude-from=$EXCLUDES_FILE"
-fi
+[ "$EXCLUDES_FILE" ] && add_rsync_opt --exclude-from="$EXCLUDES_FILE"
+[ -L "$LATEST_DIR" ] && add_rsync_opt --link-dest="$LATEST_DIR"
 
-if [ -L "$LATEST_DIR" ]; then
-  RSYNC_OPTS="$RSYNC_OPTS --link-dest=$LATEST_DIR"
-fi
-
-echo $$ > $LOCK_FILE_TMP
-chmod 400 $LOCK_FILE_TMP
-
-if ! mv $LOCK_FILE_TMP $LOCK_FILE; then
-  log "$DEST_DIR is already locked by $LOCK_FILE."
-  exit $EX_RUNNING
+# noclobber prevents the '>' from overwriting an existing lock file.
+if ! (set -o noclobber; echo $$ > "$LOCK_FILE"); then
+  fail "$DEST_DIR is already locked by the process with the PID \
+$(cat "$LOCK_FILE"). Remove $LOCK_FILE to unlock manually." $EX_RUNNING
 fi
 
 run "$BEFORE_CMD"
-
-cleanup()
-{
-  if [ 0 -eq $? ]; then
-    run "$SUCCESS_CMD"
-  else
-    run "$FAIL_CMD"
-  fi
-
-  run "$AFTER_CMD"
-
-  rm -f $LOCK_FILE
-}
-
-# Always call, event on success.
-trap cleanup EXIT
-
-rsync -avzP --delete --delete-excluded $RSYNC_OPTS $SRC "$TMP_DIR" \
+trap cleanup EXIT # Always call, even on success.
+rsync -avzP --delete --delete-excluded "${RSYNC_OPTS[@]}" "$SRC" "$TMP_DIR" \
 || [ 24 -eq $? ]
 
-mv $TMP_DIR $NEW_DIR
-rm -f $LATEST_DIR
-ln -sf $NEW_DIR $LATEST_DIR
+mv "$TMP_DIR" "$NEW_DIR"
+rm -f "$LATEST_DIR"
+ln -sf "$NEW_DIR" "$LATEST_DIR"
+run "$SUCCESS_CMD"
