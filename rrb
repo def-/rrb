@@ -81,6 +81,7 @@ LATEST_DIR="$DEST_DIR/latest"
 TMP_DIR="$DEST_DIR/.tmp"
 NEW_DIR="$DEST_DIR/`date +%FT%T`"
 LOCK_FILE="$DEST_DIR/.lock"
+LOCK_FILE_TMP=`mktemp "$DEST_DIR/.lock.XXXXXXXXXX"`
 
 if [ -e "$NEW_DIR" ]; then
   log "Backup directory $NEW_DIR already exists."
@@ -95,16 +96,13 @@ if [ -L "$LATEST_DIR" ]; then
   RSYNC_OPTS="$RSYNC_OPTS --link-dest=$LATEST_DIR"
 fi
 
-if [ -e "$LOCK_FILE" ]; then
-  PID=`cat $LOCK_FILE`
-  if ps a | grep "^$PID" > /dev/null; then
-    log "Process $PID already runs on $DEST_DIR. Remove $LOCK_FILE if not."
-    exit $EX_RUNNING
-  fi
+echo $$ > $LOCK_FILE_TMP
+chmod 400 $LOCK_FILE_TMP
+
+if ! mv $LOCK_FILE_TMP $LOCK_FILE; then
+  log "$DEST_DIR is already locked by $LOCK_FILE."
+  exit $EX_RUNNING
 fi
-
-
-echo $$ > $LOCK_FILE
 
 run "$BEFORE_CMD"
 
