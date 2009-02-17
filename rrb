@@ -79,6 +79,7 @@ cleanup()
 source $1
 [ "$SRC" -a "$DEST_DIR" ] || fail "Invalid config file, has to include at \
 least \$SRC and \$DEST_DIR.\n$HELP" $EX_CONFIG
+[ -d "$DEST_DIR" ] || fail "Backup directory $DEST_DIR non-existant." $EX_FILE
 
 LATEST_DIR="$DEST_DIR/latest"
 TMP_DIR="$DEST_DIR/.tmp"
