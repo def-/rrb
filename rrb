@@ -54,7 +54,9 @@ fail()
 
 run()
 {
-  [ "$*" ] && echo "$*" | sh
+  if [ "$*" ]; then
+    echo "$*" | sh
+  fi
 }
 
 add_rsync_opt()
