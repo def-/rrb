@@ -103,3 +103,4 @@ mv "$TMP_DIR" "$NEW_DIR"
 rm -f "$LATEST_DIR"
 ln -sf "$NEW_DIR" "$LATEST_DIR"
 run "$SUCCESS_CMD"
+# Call cleanup.
