@@ -39,6 +39,7 @@ EX_USAGE=64
 EX_SOFTWARE=70
 EX_CONFIG=78
 EX_FILE=100
+EX_RUNNING=101
 
 # Unset variables from config file.
 SRC=
@@ -79,9 +80,10 @@ fi
 LATEST_DIR="$DEST_DIR/latest"
 TMP_DIR="$DEST_DIR/.tmp"
 NEW_DIR="$DEST_DIR/`date +%FT%T`"
+LOCK_FILE="$DEST_DIR/.lock"
 
 if [ -e "$NEW_DIR" ]; then
-  log "Backup directory \"$NEW_DIR\" already exists."
+  log "Backup directory $NEW_DIR already exists."
   exit $EX_FILE
 fi
 
@@ -89,9 +91,20 @@ if [ "" != "$EXCLUDES_FILE" ]; then
   RSYNC_OPTS="$RSYNC_OPTS --exclude-from=$EXCLUDES_FILE"
 fi
 
-if [ -L "$DEST_DIR/latest" ]; then
+if [ -L "$LATEST_DIR" ]; then
   RSYNC_OPTS="$RSYNC_OPTS --link-dest=$LATEST_DIR"
 fi
+
+if [ -e "$LOCK_FILE" ]; then
+  PID=`cat $LOCK_FILE`
+  if ps a | grep "^$PID" > /dev/null; then
+    log "Process $PID already runs on $DEST_DIR. Remove $LOCK_FILE if not."
+    exit $EX_RUNNING
+  fi
+fi
+
+
+echo $$ > $LOCK_FILE
 
 run "$BEFORE_CMD"
 
@@ -104,6 +117,8 @@ cleanup()
   fi
 
   run "$AFTER_CMD"
+
+  rm -f $LOCK_FILE
 }
 
 # Always call, event on success.
