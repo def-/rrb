@@ -79,17 +79,18 @@ cleanup()
 source $1
 [ "$SRC" -a "$DEST_DIR" ] || fail "Invalid config file, has to include at \
 least \$SRC and \$DEST_DIR.\n$HELP" $EX_CONFIG
-[ -d "$DEST_DIR" ] || fail "Backup directory $DEST_DIR non-existant." $EX_FILE
 
-LATEST_DIR="$DEST_DIR/latest"
-TMP_DIR="$DEST_DIR/.tmp"
-NEW_DIR="$DEST_DIR/`date +%FT%T`"
-LOCK_FILE="$DEST_DIR/.lock"
+cd $DEST_DIR
+
+LATEST_DIR="latest"
+TMP_DIR=".tmp"
+NEW_DIR="`date +%FT%T`"
+LOCK_FILE=".lock"
 
 [ -e "$NEW_DIR" ] && fail "Backup directory $NEW_DIR already exists." $EX_FILE
 
 [ "$EXCLUDES_FILE" ] && add_rsync_opt --exclude-from="$EXCLUDES_FILE"
-[ -L "$LATEST_DIR" ] && add_rsync_opt --link-dest="$LATEST_DIR"
+[ -L "$LATEST_DIR" ] && add_rsync_opt --link-dest="$PWD/$LATEST_DIR"
 
 # noclobber prevents the '>' from overwriting an existing lock file.
 if ! (set -o noclobber; echo $$ > "$LOCK_FILE"); then
