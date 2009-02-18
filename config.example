@@ -58,9 +58,11 @@
 # Will only be executed if the backup succeeded.
 #SUCCESS_CMD="echo 'success'"
 
-# Set additional rsync options. This example runs the remote rsync as a very
-# nice process.
-#RSYNC_OPTS=( --rsync-path='nice -n19 rsync' )
+# Set additional rsync options. In this example we want to preserves hard
+# links. Preserving hard links is very expensive, and we don't want to hinder
+# the users of the client too much, so we set the niceness of the remote rsync
+# to a high value.
+#RSYNC_OPTS=( --hard-links --rsync-path='nice -n19 rsync' )
 
 # Specify a remote shell for rsync. There are more rsync-related options, see
 # man 1 rsync.
