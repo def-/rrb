@@ -75,7 +75,8 @@ cleanup()
   rm -f "$LOCK_FILE"
 }
 
-[ "$1" ] || fail "Config file missing.\n$HELP" $EX_USAGE
+[ "$#" -eq 1 ] || fail "Invalid usage.\n$HELP" $EX_USAGE
+[ "$1" ]       || fail "Config file missing.\n$HELP" $EX_USAGE
 source $1
 [ "$SRC" -a "$DEST_DIR" ] || fail "Invalid config file, has to include at \
 least \$SRC and \$DEST_DIR.\n$HELP" $EX_CONFIG
