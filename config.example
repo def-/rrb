@@ -67,3 +67,18 @@
 # Specify a remote shell for rsync. There are more rsync-related options, see
 # man 1 rsync.
 #RSYNC_RSH=ssh
+
+# -----------------------------------------------------------------------------
+# Options for rrb-cleanup
+# -----------------------------------------------------------------------------
+
+# Number of days to keep the backups and number of backups to keep in this
+# interval. One rule per line. Backups recognized by earlier lines are excluded
+# from following lines. Therefore you usually want to write the number of days
+# in ascending order.
+#KEEP_RULES=( \
+#   7  7 \
+#  31  8 \
+# 365 11 \
+#1825  4 \
+#)

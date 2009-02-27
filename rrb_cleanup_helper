@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+
+import sys
+import os
+import os.path
+import datetime
+
+def execRule(now, rule, backups):
+  oldestDt = now - datetime.timedelta(days=rule[0])
+  vBackups = []
+  for backup in backups:
+    if backup[0] > oldestDt:
+      vBackups.append(backup)
+  if len(vBackups) < rule[1]:
+    del backups[:]
+    print >> sys.stderr, "Rule", rule, "keeps all"
+    return
+
+  optDts = [now - datetime.timedelta(days=y) * rule[0] / rule[1] \
+    for y in sorted(range(rule[1]))]
+  for optDt in optDts:
+    diffs = []
+    for backup in vBackups:
+      diffs.append((abs(optDt - backup[0]), backup[0], backup[1]))
+    diffs.sort()
+    print >> sys.stderr, "Rule", rule, "tries to get", \
+      optDt.strftime("%Y-%m-%dT%H:%M:%S"), "and keeps", diffs[0][2]
+    backups.remove((diffs[0][1], diffs[0][2]))
+    vBackups.remove((diffs[0][1], diffs[0][2]))
+
+def main(argv=None):
+  if not argv:
+    argv = sys.argv
+
+  if len(argv) < 5 or len(argv) % 2 != 0:
+    print >> sys.stderr, "Usage: " + argv[0] + " dir rule1_days rule1_nr [...]"
+
+  baseDir = argv[1]
+  rules = map(lambda x: (int(x[0]), int(x[1])), zip(*[iter(argv[2:])]*2))
+
+  dirs = os.listdir(baseDir)
+  backups = []
+
+  for dir in dirs:
+    try:
+      dt = datetime.datetime.strptime(dir, "%Y-%m-%dT%H:%M:%S")
+    except ValueError:
+      continue
+    backups.append((dt, dir))
+  backups.sort(reverse=True)
+
+  now = datetime.datetime.now()
+
+  for rule in rules:
+    execRule(now, rule, backups)
+
+  # Print backups to be deleted.
+  for backup in backups:
+    sys.stdout.write(os.path.join(baseDir, backup[1]) + '\0')
+
+if __name__ == '__main__':
+  main()

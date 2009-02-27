@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# Cleanup a user's backup directory by printing no longer needed backups
+# (seperated by null charaters) using a defined policy. Pipe to xargs -0 rm -rf
+# to really delete them.
+
+set -e
+HELP="Usage: $0 config"
+EX_USAGE=64
+EX_CONFIG=78
+unset DEST_DIR KEEP_RULES
+
+fail()
+{
+  echo -e "$1" >&2
+  exit $2
+}
+
+CONFIG="$1"
+[ "$#" -eq 1 ]    || fail "Invalid usage.\n$HELP" $EX_USAGE
+[ "$CONFIG" ]     || fail "Config file missing.\n$HELP" $EX_USAGE
+source $CONFIG
+[ "$DEST_DIR" ]   || fail "Invalid config file, missing \$DEST_DIR.
+$HELP" $EX_CONFIG
+[ "$KEEP_RULES" ] || fail "Invalid config file, missing \$KEEP_RULES.
+$HELP" $EX_CONFIG
+
+exec rrb_cleanup_helper "$DEST_DIR" "${KEEP_RULES[@]}"
