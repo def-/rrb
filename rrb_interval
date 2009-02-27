@@ -1,0 +1,38 @@
+#!/bin/sh
+
+set -e
+HELP="Usage: $0 interval rrb config"
+EX_USAGE=64
+EX_CONFIG=78
+unset SRC
+
+fail()
+{
+  echo -e "$1" >&2
+  exit $2
+}
+do_rrb()
+{
+    exec $RRB $CONFIG
+}
+
+INTERVAL="$1"
+RRB="$2"
+CONFIG="$3"
+[ "$#" -eq 3 ]        || fail "Invalid usage.\n$HELP" $EX_USAGE
+[ "$INTERVAL" ]       || fail "Interval missing.\n$HELP" $EX_USAGE
+[ "$INTERVAL" -ge 1 ] || fail "Invalid interval.\n$HELP" $EX_USAGE
+[ "$RRB" ]            || fail "rrb missing.\n$HELP" $EX_USAGE
+[ "$CONFIG" ]         || fail "Config file missing.\n$HELP" $EX_USAGE
+source $CONFIG
+[ "$DEST_DIR" ]       || fail "Invalid config file, missing \$DEST_DIR.
+$HELP" $EX_CONFIG
+
+LATEST_DIR="$DEST_DIR/latest"
+[ -e "$LATEST_DIR" ] || do_rrb
+# date does not parse datetime with 'T' as delimiter correctly, replace with
+# space. (Or it does it correctly by recognizing the timezone, but this is not
+# wanted here)
+DATE_LAST=`date --date="\`readlink $LATEST_DIR | tr T ' '\`" +%s`
+DATE_LIMIT=`echo "\`date +%s\` - $INTERVAL" | bc`
+[ $DATE_LAST -lt $DATE_LIMIT ] && do_rrb
