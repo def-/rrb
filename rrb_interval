@@ -4,10 +4,10 @@
 # Useful in cron-scripts for clients, that are not online all the time.
 
 set -e
-HELP="Usage: $0 interval rrb config"
+HELP="Usage: $0 interval config"
 EX_USAGE=64
 EX_CONFIG=78
-unset SRC
+unset DEST_DIR
 
 fail()
 {
@@ -16,16 +16,14 @@ fail()
 }
 do_rrb()
 {
-    exec $RRB $CONFIG
+    exec rrb $CONFIG
 }
 
 INTERVAL="$1"
-RRB="$2"
-CONFIG="$3"
-[ "$#" -eq 3 ]        || fail "Invalid usage.\n$HELP" $EX_USAGE
+CONFIG="$2"
+[ "$#" -eq 2 ]        || fail "Invalid usage.\n$HELP" $EX_USAGE
 [ "$INTERVAL" ]       || fail "Interval missing.\n$HELP" $EX_USAGE
 [ "$INTERVAL" -ge 1 ] || fail "Invalid interval.\n$HELP" $EX_USAGE
-[ "$RRB" ]            || fail "rrb missing.\n$HELP" $EX_USAGE
 [ "$CONFIG" ]         || fail "Config file missing.\n$HELP" $EX_USAGE
 source $CONFIG
 [ "$DEST_DIR" ]       || fail "Invalid config file, missing \$DEST_DIR.
