@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Run rrb if it was last run more than the specified number of seconds ago.
+# Useful in cron-scripts for clients, that are not online all the time.
+
 set -e
 HELP="Usage: $0 interval rrb config"
 EX_USAGE=64
