@@ -22,8 +22,8 @@ cd "$SETUP_CHROOT_PATH"
 echo "$NAME" | ./setup_chroot.sh
 HOME_DIR="`grep "^$NAME" /etc/passwd | cut -d ":" -f6`"
 passwd "$NAME"
-rmdir "~$NAME/incoming"
-mkdir "~$NAME/backup" "~$NAME/dev"
-mknod -m 666 "~$NAME/dev/null"
+rmdir "$HOME_DIR/incoming"
+mkdir "$HOME_DIR/backup" "$HOME_DIR/dev"
+mknod -m 666 "$HOME_DIR/dev/null"
 echo "localhost:$BACKUP_DIR $HOME_DIR/backup nfs defaults 0 0" >> /etc/fstab
 mount "$HOME_DIR/backup"
