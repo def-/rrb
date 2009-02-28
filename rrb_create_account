@@ -24,6 +24,6 @@ HOME_DIR="`grep "^$NAME" /etc/passwd | cut -d ":" -f6`"
 passwd "$NAME"
 rmdir "$HOME_DIR/incoming"
 mkdir "$HOME_DIR/backup" "$HOME_DIR/dev"
-mknod -m 666 "$HOME_DIR/dev/null"
+mknod -m 666 "$HOME_DIR/dev/null" c 1 3
 echo "localhost:$BACKUP_DIR $HOME_DIR/backup nfs defaults 0 0" >> /etc/fstab
 mount "$HOME_DIR/backup"
