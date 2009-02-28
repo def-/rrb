@@ -1,0 +1,29 @@
+#!/bin/sh
+
+SETUP_CHROOT_PATH=/etc/scponly/chroot/
+
+set -e
+HELP="Usage: $0 name backup-dir"
+
+EX_USAGE=64
+
+fail()
+{
+  echo -e "$1" >&2
+  exit $2
+}
+
+[ "$#" -eq 2 ] || fail "Invalid usage.\n$HELP" $EX_USAGE
+[ "$1" ]       || fail "Username missing.\n$HELP" $EX_USAGE
+[ "$2" ]       || fail "Backup directory missing.\n$HELP" $EX_USAGE
+NAME="$1"
+BACKUP_DIR="$2"
+cd "$SETUP_CHROOT_PATH"
+echo "$NAME" | ./setup_chroot.sh
+HOME_DIR="`grep "^$NAME" /etc/passwd | cut -d ":" -f6`"
+passwd "$NAME"
+rmdir "~$NAME/incoming"
+mkdir "~$NAME/backup" "~$NAME/dev"
+mknod -m 666 "~$NAME/dev/null"
+echo "localhost:$BACKUP_DIR $HOME_DIR/backup nfs defaults 0 0" >> /etc/fstab
+mount "$HOME_DIR/backup"
