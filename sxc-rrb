@@ -1,0 +1,109 @@
+#!/bin/sh
+
+# Video recorder using sxc, at, mencoder
+
+source sxc-rrb-settings
+
+main()
+{
+  PID=$1
+
+  while [ ! -p $JID/in ]; do
+    echo "Waiting for $JID/in"
+    sleep 0.5
+  done
+
+  echo -e "\0:pwd $PASSWORD\0" > $JID/in
+  echo -e "\0:pri $PRIORITY\0" > $JID/in
+  echo -e "\0:set available\0" > $JID/in
+
+  LAST_USER=
+  LAST_CONFIGS=()
+  for ENTRY in ${USERS[@]}; do
+    if echo "$ENTRY" | grep -qs "@"; then
+      if [ "$LAST_USER" ]; then
+        echo "\0:add $LAST_USER\0" > $JID/in
+        handle_contact $PID "$LAST_USER" ${LAST_CONFIGS[@]}
+      fi
+      LAST_USER="$ENTRY"
+      LAST_CONFIGS=()
+    else
+      if [ "${LAST_CONFIGS}" ]; then
+        LAST_CONFIGS=("${LAST_CONFIGS[@]}" "$ENTRY")
+      else
+        LAST_CONFIGS=("$ENTRY")
+      fi
+    fi
+  done
+
+  echo "\0:add $LAST_USER\0" > $JID/in
+  handle_contact $PID "$LAST_USER" ${LAST_CONFIGS[@]}
+
+  tail --lines=0 --follow --pid $PID $JID/out 2> /dev/null |
+  while read -r line; do
+    OUT=`echo $line | cut -d" " -f 2-` # Remove date
+    if echo $OUT | grep -qs "^Disconnected"; then
+      ( sleep 5; echo "\0:set available\0" > $JID/in) &
+    fi
+  done
+}
+
+handle_contact()
+{
+  PID=$1
+  CONTACT=$2
+  CONFIGS=${*:3}
+  FILE_OUT=$JID/$CONTACT/out
+  FILE_IN=$JID/$CONTACT/in
+
+  while [ ! -p $FILE_IN -a -f $FILE_OUT ]; do
+    echo "Waiting for $CONTACT/{in,out}"
+    sleep 0.5
+  done
+
+  tail --lines=0 --follow --pid $PID $FILE_OUT 2> /dev/null |
+  while read -r line; do
+    OUT=`echo $line | cut -d" " -f 2-` # Remove date
+
+    # We are only interested in messages from the other contact.
+    if ! echo $OUT | grep -qs "^<$CONTACT> "; then
+      continue
+    fi
+
+    MSG=`echo $OUT | cut -d" " -f 2-`
+
+    CMD=`echo $MSG | cut -d" " -f 1`
+    if [ ":help" = "$CMD" ]; then
+      echo "\
+Commands:
+  :backup name
+  :list" > $FILE_IN
+    elif [ ":list" = "$CMD" ]; then
+      echo "Valid hosts: ${CONFIGS[@]}" > $FILE_IN
+    elif [ ":backup" = "$CMD" ]; then
+      NAME=`echo $MSG | cut -d" " -f 2-`
+
+      for CONFIG in ${CONFIGS[@]}; do
+        if [ "$CONFIG" = "$NAME" ]; then
+          VALID=true
+        fi
+      done
+      if [ "$VALID" = "true" ]; then
+        echo "Running: rrb \"$CONFIG_PREFIX$NAME$CONFIG_SUFFIX\"" > $FILE_IN
+        sleep 0.1
+        rrb "$CONFIG_PREFIX$NAME$CONFIG_SUFFIX" &> $FILE_IN
+        echo "rrb \"$CONFIG_PREFIX$NAME$CONFIG_SUFFIX\" finished with exit code: $!" \
+        > $FILE_IN
+      else
+        echo "Invalid hostname $NAME" > $FILE_IN
+      fi
+    else
+      echo "Invalid usage, see :help" > $FILE_IN
+    fi
+  done
+}
+
+sxc $JID &
+PID=$!
+main $PID &
+wait $PID

@@ -1,0 +1,15 @@
+JID=rrb@example.org
+PASSWORD=insecure
+
+# Prefix for every config file.
+CONFIG_PREFIX=/etc/rrb/config.
+# Suffix for every config file.
+CONFIG_SUFFIX=
+
+# Entries including an "@" are the JIDs, all following entries the config files
+# that user is allowed to request a backup for.
+USERS=( \
+  foo@example.org comp1 \
+  bar@example.org comp2 comp1 \
+  xyz@example.org comp2 comp3 \
+)
