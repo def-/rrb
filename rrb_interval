@@ -36,4 +36,4 @@ LATEST_DIR="$DEST_DIR/latest"
 # wanted here)
 DATE_LAST=`date --date="\`readlink $LATEST_DIR | tr T ' '\`" +%s`
 DATE_LIMIT=`echo "\`date +%s\` - $INTERVAL" | bc`
-[ $DATE_LAST -lt $DATE_LIMIT ] && do_rrb
+[ $DATE_LAST -le $DATE_LIMIT ] && do_rrb
