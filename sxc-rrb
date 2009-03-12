@@ -92,7 +92,7 @@ Commands:
         echo "Running: rrb \"$CONFIG_PREFIX$NAME$CONFIG_SUFFIX\"" > $FILE_IN
         sleep 0.1
         rrb "$CONFIG_PREFIX$NAME$CONFIG_SUFFIX" &> $FILE_IN
-        echo "rrb \"$CONFIG_PREFIX$NAME$CONFIG_SUFFIX\" finished with exit code: $!" \
+        echo "rrb \"$CONFIG_PREFIX$NAME$CONFIG_SUFFIX\" finished with exit code: $?" \
         > $FILE_IN
       else
         echo "Invalid hostname $NAME" > $FILE_IN
