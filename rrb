@@ -99,7 +99,7 @@ if ! (set -o noclobber; echo $$ > "$LOCK_FILE"); then
 $(cat "$LOCK_FILE"). Remove $LOCK_FILE to unlock manually." $EX_RUNNING
 fi
 
-trap cleanup EXIT # Always call, even on success.
+trap cleanup EXIT HUP INT QUIT TERM # Always call, even on success.
 run "$BEFORE_CMD"
 rsync -avzP --delete --delete-excluded "${RSYNC_OPTS[@]}" "$SRC" "$TMP_DIR" \
 || [ 24 -eq $? ]
