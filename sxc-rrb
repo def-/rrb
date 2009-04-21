@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Video recorder using sxc, at, mencoder
+# Backups using sxc and rrb.
 
 source sxc-rrb-settings
 
