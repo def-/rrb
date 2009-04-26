@@ -2,7 +2,20 @@
 
 # Backups using sxc and rrb.
 
-source sxc-rrb-settings
+HELP="Usage: $0 config"
+
+# Exit codes
+EX_USAGE=64
+
+fail()
+{
+  echo -e "$1" >&2
+  exit $2
+}
+
+[ "$#" -eq 1 ] || fail "Invalid usage.\n$HELP" $EX_USAGE
+[ "$1" ]       || fail "Config file missing.\n$HELP" $EX_USAGE
+source $1
 
 main()
 {
@@ -22,8 +35,8 @@ main()
   for ENTRY in ${USERS[@]}; do
     if echo "$ENTRY" | grep -qs "@"; then
       if [ "$LAST_USER" ]; then
-        echo "\0:add $LAST_USER\0" > $JID/in
-        handle_contact $PID "$LAST_USER" ${LAST_CONFIGS[@]}
+        echo -e "\0:add $LAST_USER\0" > $JID/in
+        handle_contact $PID "$LAST_USER" "${LAST_CONFIGS[@]}" &
       fi
       LAST_USER="$ENTRY"
       LAST_CONFIGS=()
@@ -36,14 +49,14 @@ main()
     fi
   done
 
-  echo "\0:add $LAST_USER\0" > $JID/in
-  handle_contact $PID "$LAST_USER" ${LAST_CONFIGS[@]}
+  echo -e "\0:add $LAST_USER\0" > $JID/in
+  handle_contact $PID "$LAST_USER" "${LAST_CONFIGS[@]}" &
 
   tail --lines=0 --follow --pid $PID $JID/out 2> /dev/null |
   while read -r line; do
     OUT=`echo $line | cut -d" " -f 2-` # Remove date
     if echo $OUT | grep -qs "^Disconnected"; then
-      ( sleep 5; echo "\0:set available\0" > $JID/in) &
+      ( sleep 5; echo -e "\0:set available\0" > $JID/in) &
     fi
   done
 }
@@ -103,7 +116,7 @@ Commands:
   done
 }
 
-sxc $JID &
+sxc $JID --port $PORT &
 PID=$!
 main $PID &
 wait $PID

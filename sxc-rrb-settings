@@ -1,5 +1,7 @@
 JID=rrb@example.org
 PASSWORD=insecure
+PRIORITY=0
+PORT=5222
 
 # Prefix for every config file.
 CONFIG_PREFIX=/etc/rrb/config.
