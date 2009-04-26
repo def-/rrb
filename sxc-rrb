@@ -30,6 +30,10 @@ main()
   echo -e "\0:pri $PRIORITY\0" > $JID/in
   echo -e "\0:set available\0" > $JID/in
 
+  while [ "`cat $JID/nfo/presence`" = "offline" ]; do
+    sleep 1
+  done
+
   LAST_USER=
   LAST_CONFIGS=()
   for ENTRY in ${USERS[@]}; do
