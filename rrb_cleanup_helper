@@ -6,12 +6,7 @@ import os.path
 import datetime
 
 def execRule(now, rule, backups):
-  oldestDt = now - datetime.timedelta(days=rule[0])
-  vBackups = []
-  for backup in backups:
-    if backup[0] > oldestDt:
-      vBackups.append(backup)
-  if len(vBackups) < rule[1]:
+  if len(backups) < rule[1]:
     del backups[:]
     print >> sys.stderr, "Rule", rule, "keeps all"
     return
@@ -20,13 +15,12 @@ def execRule(now, rule, backups):
     for y in sorted(range(rule[1]))]
   for optDt in optDts:
     diffs = []
-    for backup in vBackups:
+    for backup in backups:
       diffs.append((abs(optDt - backup[0]), backup[0], backup[1]))
     diffs.sort()
     print >> sys.stderr, "Rule", rule, "tries to get", \
       optDt.strftime("%Y-%m-%dT%H:%M:%S"), "and keeps", diffs[0][2]
     backups.remove((diffs[0][1], diffs[0][2]))
-    vBackups.remove((diffs[0][1], diffs[0][2]))
 
 def main(argv=None):
   if not argv:
