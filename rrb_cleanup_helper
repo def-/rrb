@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import os
@@ -8,7 +8,7 @@ import datetime
 def execRule(now, rule, backups):
   if len(backups) < rule[1]:
     del backups[:]
-    print >> sys.stderr, "Rule", rule, "keeps all"
+    print("Rule", rule, "keeps all", file=sys.stderr)
     return
 
   optDts = [now - datetime.timedelta(days=y) * rule[0] / rule[1] \
@@ -18,8 +18,7 @@ def execRule(now, rule, backups):
     for backup in backups:
       diffs.append((abs(optDt - backup[0]), backup[0], backup[1]))
     diffs.sort()
-    print >> sys.stderr, "Rule", rule, "tries to get", \
-      optDt.strftime("%Y-%m-%dT%H:%M:%S"), "and keeps", diffs[0][2]
+    print("Rule", rule, "tries to get", optDt.strftime("%Y-%m-%dT%H:%M:%S"), "and keeps", diffs[0][2], file=sys.stderr)
     backups.remove((diffs[0][1], diffs[0][2]))
 
 def main(argv=None):
@@ -27,7 +26,7 @@ def main(argv=None):
     argv = sys.argv
 
   if len(argv) < 5 or len(argv) % 2 != 0:
-    print >> sys.stderr, "Usage: " + argv[0] + " dir rule1_days rule1_nr [...]"
+    print("Usage: " + argv[0] + " dir rule1_days rule1_nr [...]", file=sys.stderr)
 
   baseDir = argv[1]
   rules = map(lambda x: (int(x[0]), int(x[1])), zip(*[iter(argv[2:])]*2))

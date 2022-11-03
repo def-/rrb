@@ -33,6 +33,8 @@
 # -----------------------------------------------------------------------------
 
 set -e # Exit on every fail.
+renice -n 19 -p $$ > /dev/null
+ionice -n 3 -p $$
 HELP="Usage: $0 config"
 
 # Exit codes
@@ -101,7 +103,7 @@ fi
 
 trap cleanup EXIT HUP INT QUIT TERM # Always call, even on success.
 run "$BEFORE_CMD"
-rsync -avzP --delete --delete-excluded "${RSYNC_OPTS[@]}" "$SRC" "$TMP_DIR" \
+rsync -z -avP --delete --delete-excluded "${RSYNC_OPTS[@]}" "$SRC" "$TMP_DIR" \
 || [ 24 -eq $? ]
 
 mv "$TMP_DIR" "$NEW_DIR"

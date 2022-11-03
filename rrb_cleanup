@@ -25,4 +25,4 @@ $HELP" $EX_CONFIG
 [ "$KEEP_RULES" ] || fail "Invalid config file, missing \$KEEP_RULES.
 $HELP" $EX_CONFIG
 
-exec rrb_cleanup_helper "$DEST_DIR" "${KEEP_RULES[@]}"
+exec /usr/local/bin/rrb_cleanup_helper "$DEST_DIR" "${KEEP_RULES[@]}"
